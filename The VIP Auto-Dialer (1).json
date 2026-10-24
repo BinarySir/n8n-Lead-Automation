@@ -1,0 +1,306 @@
+{
+  "name": "The VIP Auto-Dialer",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d521a3e4-1b10-472e-8a52-43fae816a787",
+              "leftValue": "={{ $json.organization.estimated_num_employees }}",
+              "rightValue": 100,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ],
+      "id": "3af137f7-7b72-4161-98f7-f463a9f35575",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "617c13f2-b186-4d87-96f4-d965f5834e1f",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2c90e5af-1c1a-4f88-980b-754871b0a5b3",
+      "name": "get form detail from tally",
+      "webhookId": "617c13f2-b186-4d87-96f4-d965f5834e1f"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apollo.io/v1/organizations/enrich",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "domain",
+              "value": "={{ $json.company_domain }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "745bf894-c0d2-4a47-b291-5bdc9f5c465d",
+      "name": "Get company details from apollo",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "PjvAUUS0pItS3mTG",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "=={{ $('get form detail from tally').item.json.body.data.fields.find(f => f.type === 'INPUT_EMAIL').value }}",
+        "subject": "Thanks for requesting a demo!",
+        "message": "Hi there,   Thanks for requesting a demo! Because we are currently experiencing high volume, please use this Calendly link to book a time that works best for your schedule:  https://calendly.com/your-fake-link  Talk soon!",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        96
+      ],
+      "id": "e1238474-92e5-49a2-99cc-3c21a2022b73",
+      "name": "Send a message1",
+      "webhookId": "9f507d60-0a52-41c9-b75b-3f53ead04e61",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "IUdVLCTvwo5L7RK3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0CA0DF15Q9",
+          "mode": "list",
+          "cachedResultName": "all-jautomate"
+        },
+        "text": "=VIP INBOUND LEAD! Someone from {{ $json.organization.name }} just requested a demo. Company size: {{ $json.organization.estimated_num_employees }}. Calling rep now.",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "53118327-e529-48d7-87ec-26376728973d",
+      "name": "Send a message to Slack Channel",
+      "webhookId": "f55bf6bd-4362-4fd5-8edd-7228293cd517",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "Ob1y4AiS0vVQRkur",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ab5e97b6-fc38-47c4-8e63-3c8b5fae885d",
+              "name": "company_domain",
+              "value": "={{ $json.body.data.fields.find(f => f.type === 'INPUT_EMAIL').value.split('@')[1] }}",
+              "type": "string"
+            },
+            {
+              "id": "97cd09ad-c91f-4e46-9a5c-49d912576ff3",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "fa311f91-1c89-4cee-b710-274872286072",
+      "name": "Find company domain"
+    },
+    {
+      "parameters": {
+        "content": "## From Form Submission to Sales Outreach  Automatically \nLead Enrichment • Smart Qualification • Slack Alerts • Twilio Calling ",
+        "height": 176,
+        "width": 608
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        384,
+        -320
+      ],
+      "typeVersion": 1,
+      "id": "363f51b4-1c84-4b99-8a17-c31af5cf6c96",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twilio.com/2010-04-01/Accounts/AC9cfac2ea652ab412e42eac5e295f0b7d/Calls.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "To",
+              "value": "+2348154536130"
+            },
+            {
+              "name": "From",
+              "value": "+17372508034"
+            },
+            {
+              "name": "Url",
+              "value": "https://webhook.site/70898d8b-290f-4552-a061-e0b1dace0c3c"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1120,
+        -96
+      ],
+      "id": "ba144036-3d6b-4e96-9bfa-38eeadb3cd77",
+      "name": "Twilio Calling API",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "0PwXUDbLcl5jxuql",
+          "name": "Unnamed credential"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "get form detail from tally": {
+      "main": [
+        [
+          {
+            "node": "Find company domain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get company details from apollo": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message to Slack Channel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message to Slack Channel": {
+      "main": [
+        [
+          {
+            "node": "Twilio Calling API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find company domain": {
+      "main": [
+        [
+          {
+            "node": "Get company details from apollo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "101cb4bf-58de-4e7c-b676-8d8eed7e04a1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2ba56e1bde39652d38f7196a17b5cba9707d848e56ac38a04bca63b21b0f1352"
+  },
+  "nodeGroups": [],
+  "id": "gaVJ7vdrPvNmgJC9",
+  "tags": []
+}
